@@ -1,10 +1,9 @@
-
 import Foundation
 import UIKit
 
 protocol RadioStationDataProtocol: AnyObject {
     func loadDataFromNetwork()
-    func setPresenterForData(presenter: DataPresenterProtocol)
+    func setPresenterForData(presenter: StationsDataLoadPresenterProtocol)
     var radioStations: [SearchResponse.RadioStation] { get }
     var radioStationsImages: [UIImage] { get }
     init(networkService: NetworkServiceProtocol,
@@ -19,7 +18,7 @@ final class RadioStationData: RadioStationDataProtocol {
     private let imageLoader: ImageLoaderServiceProtocol
     
     // MARK: - Presenter binding
-    private weak var presenterForData: DataPresenterProtocol?
+    private weak var presenterForData: StationsDataLoadPresenterProtocol?
     
     // MARK: - Data storage
     var radioStations: [SearchResponse.RadioStation] = []
@@ -34,21 +33,26 @@ final class RadioStationData: RadioStationDataProtocol {
     }
     
     // MARK: - Presenter binding
-    func setPresenterForData(presenter: DataPresenterProtocol) {
+    func setPresenterForData(presenter: StationsDataLoadPresenterProtocol) {
         presenterForData = presenter
     }
     
     // MARK: - Public API
     func loadDataFromNetwork() {
-        fetchRadioStationsData { [weak self] in
+        fetchRadioStationsData { [weak self] result in
             guard let self else { return }
-            self.radioStationsImages = Array(
-                repeating: UIImage(),
-                count: self.radioStations.count
-            )
-            self.loadImages { [weak self] in
-                guard let self else { return }
-                self.presenterForData?.succesLoadData?()
+            switch result {
+            case .success:
+                self.radioStationsImages = Array(
+                    repeating: UIImage(),
+                    count: self.radioStations.count
+                )
+                self.loadImages { [weak self] in
+                    guard let self else { return }
+                    self.presenterForData?.successLoadData()
+                }
+            case .failure(let error):
+                self.presenterForData?.failureLoadData(error: error)
             }
         }
     }
@@ -57,16 +61,17 @@ final class RadioStationData: RadioStationDataProtocol {
 // MARK: - Network
 private extension RadioStationData {
     
-    func fetchRadioStationsData(completion: @escaping () -> Void) {
+    func fetchRadioStationsData(completion: @escaping (Result<Void, Error>) -> Void) {
         networkService.getStationsFromNetwork(urlString: urlString) { [weak self] (result: Result<SearchResponse, Error>) in
             guard let self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let searchResponse):
                     self.radioStations = searchResponse.results
-                    completion()
+                    completion(.success(()))
                 case .failure(let error):
                     print("Error fetching radio stations: \(error)")
+                    completion(.failure(error))
                 }
             }
         }
@@ -85,8 +90,10 @@ private extension RadioStationData {
             let url = URL(string: station.image ?? "") ?? defaultURL
             guard let url, let defaultURL else { dispatchGroup.leave(); continue }
             loadImageWithFallback(url: url, fallbackURL: defaultURL) { [weak self] image in
-                if let image { self?.radioStationsImages[index] = image }
-                dispatchGroup.leave()
+                DispatchQueue.main.async {
+                    if let image { self?.radioStationsImages[index] = image }
+                    dispatchGroup.leave()
+                }
             }
         }
         dispatchGroup.notify(queue: .main) { completion() }

@@ -1,4 +1,3 @@
-
 import Foundation
 
 protocol LivenessServiceProtocol: AnyObject {
@@ -12,14 +11,19 @@ final class NetworkLivenessService: LivenessServiceProtocol {
 
     init(
         testURL: URL = URL(string: "https://raw.githubusercontent.com/Keornavil/Radio-Json-Link/main/RadioLink.json")!,
-        timeout: TimeInterval = 1.5
+        timeout: TimeInterval = 5.0
     ) {
         self.testURL = testURL
         self.timeout = timeout
     }
     func isOnline() async -> Bool {
+        if await check(method: "HEAD") { return true }
+        return await check(method: "GET")
+    }
+
+    private func check(method: String) async -> Bool {
         var request = URLRequest(url: testURL)
-        request.httpMethod = "HEAD"          // вместо GET
+        request.httpMethod = method
         request.timeoutInterval = timeout
         do {
             let (_, response) = try await URLSession.shared.data(for: request)

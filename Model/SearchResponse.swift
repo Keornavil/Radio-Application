@@ -1,4 +1,3 @@
-
 struct SearchResponse: Decodable {
     var results: [RadioStation]
     

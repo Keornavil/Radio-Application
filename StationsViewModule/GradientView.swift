@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import UIKit
 
 final class GradientView: UIView {
@@ -33,6 +27,7 @@ final class GradientView: UIView {
         layer.insertSublayer(gradientLayer, at: 0)
         translatesAutoresizingMaskIntoConstraints = false
     }
+
     // MARK: - Layout
     override func layoutSubviews() {
         super.layoutSubviews()

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import UIKit
 
 protocol RouterMain {
@@ -13,10 +7,10 @@ protocol RouterMain {
 
 protocol RouterProtocol: RouterMain {
     func initialStationViewController()
-    func showNowPlayingViewController(dataForRadio: TransferData)
+    func showNowPlayingViewController(radioName: String)
 }
 
-class Router: RouterProtocol {
+final class Router: RouterProtocol {
     
     var navigationController: UINavigationController
     var assemblyBuilder: AssemblyBuilderProtocol
@@ -42,16 +36,18 @@ class Router: RouterProtocol {
         let stationsViewController = assemblyBuilder.createStationsViewModule(
             router: self,
             audioPlayer: audioPlayer,
-            audioPlayerDelegate: audioPlayerDelegate, imageLoader: imageLoader)
+            audioPlayerDelegate: audioPlayerDelegate,
+            imageLoader: imageLoader
+        )
         navigationController.viewControllers = [stationsViewController]
     }
     
-    func showNowPlayingViewController(dataForRadio: TransferData) {
+    func showNowPlayingViewController(radioName: String) {
         let nowPlayingViewController = assemblyBuilder.createNowPlayerViewModule(
-            transferDataForRadio: dataForRadio,
-            router: self,
+            radioName: radioName,
             audioPlayer: audioPlayer,
-            audioPlayerDelegate: audioPlayerDelegate)
+            audioPlayerDelegate: audioPlayerDelegate
+        )
         navigationController.visibleViewController?.present(nowPlayingViewController, animated: true)
     }
 }

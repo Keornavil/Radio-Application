@@ -1,4 +1,3 @@
-
 import UIKit
 
 final class CustomGradientActivityIndicator: UIView {
@@ -94,7 +93,7 @@ final class CustomGradientActivityIndicator: UIView {
 // MARK: - Constants
 private enum Constants {
     static let borderWidth: CGFloat = 2
-    static let cornerRadius: CGFloat = 30 // как было раньше
+    static let cornerRadius: CGFloat = 30
     static let lineWidth: CGFloat = 15
     static let strokeEnd: CGFloat = 0.3
     static let rotationDuration: CFTimeInterval = 1

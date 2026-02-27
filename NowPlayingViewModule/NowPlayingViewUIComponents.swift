@@ -1,5 +1,3 @@
-
-import Foundation
 import UIKit
 
 final class NowPlayingViewUIComponents {
@@ -34,7 +32,8 @@ final class NowPlayingViewUIComponents {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }
-    func makeButton(systemName: String, action: Selector,target: Any) -> UIButton {
+
+    func makeButton(systemName: String, action: Selector, target: Any) -> UIButton {
         let button = UIButton(type: .system)
         let imageConfig = UIImage.SymbolConfiguration(
             pointSize: 70,
@@ -49,14 +48,15 @@ final class NowPlayingViewUIComponents {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
-    func makeLabel(text: String,color: UIColor, in view: UIStackView) -> UILabel {
-            let label = UILabel()
-            label.text = text
-            label.textColor = color
-            label.textAlignment = .center
-            label.font = UIFont.systemFont(ofSize: 20)
-            label.translatesAutoresizingMaskIntoConstraints = false
-            view.addArrangedSubview(label)
-            return label
-        }
+
+    func makeLabel(text: String, color: UIColor, in view: UIStackView) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.textColor = color
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 20)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addArrangedSubview(label)
+        return label
+    }
 }

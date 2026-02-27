@@ -1,21 +1,15 @@
-
 import UIKit
 
 // MARK: - Data -> Presenter
-@objc protocol DataPresenterProtocol: AnyObject {
+protocol PlayerDataPresenterProtocol: AnyObject {
     func dataOnPresenter()
     func dataOfSong(artistName: String, trackName: String)
     func dataOfSongImage(image: UIImage?)
-    @objc optional func succesLoadData()
-    @objc optional func dataRequest(trackName: String, artistName: String, image: UIImage)
 }
 
-// MARK: - View -> Presenter
-protocol StationsViewProtocol: AnyObject {
-    func succes()
-    func failure(error: Error)
-    func viewPlayerView(constPlayerView: CGFloat)
-    func showOnlineState(_ isOnline: Bool)
+protocol StationsDataLoadPresenterProtocol: AnyObject {
+    func successLoadData()
+    func failureLoadData(error: Error)
 }
 
 protocol StationsViewPresenterProtocol: AnyObject {
@@ -26,19 +20,20 @@ protocol StationsViewPresenterProtocol: AnyObject {
          radioStationData: RadioStationDataProtocol)
     func attachView(_ view: StationsViewProtocol)
     func checkOnlineStatus()
+    func activateAsDataReceiver()
     func getStations()
     func radioStationsCount() -> Int
     func dataForView(index: Int) -> (title: String, image: UIImage)
     func tapOnTheCellOfRadio(cellIndex: Int)
     func tapNowPlayingViewButton()
     func playerStatus() -> String
-    func setupURL(url: String)
+    func setupURL(url: String) -> Bool
     func play()
     func pause()
     func stop()
     var constraintPlayerView: CGFloat { get set }
-    func visiblePlayerView()
-    func unvisiblePlayerView()
+    func showPlayerView()
+    func hidePlayerView()
 }
 
 // MARK: - Presenter
@@ -73,10 +68,12 @@ final class StationsViewPresenter: StationsViewPresenterProtocol {
         radioStationData.setPresenterForData(presenter: self)
         dataOnPresenter()
     }
+
     // MARK: Binding
     func attachView(_ view: StationsViewProtocol) {
         self.view = view
     }
+
     // MARK: Lifecycle / Loading
     func checkOnlineStatus() {
         Task { [weak self] in
@@ -87,13 +84,19 @@ final class StationsViewPresenter: StationsViewPresenterProtocol {
             }
         }
     }
+    func activateAsDataReceiver() {
+        dataOnPresenter()
+    }
+
     func getStations() {
         radioStationData.loadDataFromNetwork()
     }
+
     // MARK: Table data
     func radioStationsCount() -> Int {
         radioStationData.radioStations.count
     }
+
     func dataForView(index: Int) -> (title: String, image: UIImage) {
         guard radioStationData.radioStations.indices.contains(index),
               radioStationData.radioStationsImages.indices.contains(index) else {
@@ -106,75 +109,97 @@ final class StationsViewPresenter: StationsViewPresenterProtocol {
         guard radioStationData.radioStations.indices.contains(cellIndex),
               radioStationData.radioStationsImages.indices.contains(cellIndex) else { return }
         guard self.cellIndex != cellIndex else {
-            router.showNowPlayingViewController(dataForRadio: transferData)
+            router.showNowPlayingViewController(radioName: transferData.radioName)
             return
         }
         let station = radioStationData.radioStations[cellIndex]
         let image = radioStationData.radioStationsImages[cellIndex]
-        setupURL(url: station.link)
+        guard setupURL(url: station.link) else { return }
         play()
         self.cellIndex = cellIndex
         transferData.radioName = station.title
+        audioPlayerDelegate.setCurrentStationName(station.title)
         transferData.artistName = "Имя артиста неизвестно"
         transferData.trackName = "Название песни неизвестно"
         transferData.image = image
+        audioPlayerDelegate.dataRequest(
+            artistName: transferData.artistName,
+            trackName: transferData.trackName,
+            image: transferData.image
+        )
         audioPlayerDelegate.playerStatus = .play
     }
     func tapNowPlayingViewButton() {
-        router.showNowPlayingViewController(dataForRadio: transferData)
+        router.showNowPlayingViewController(radioName: transferData.radioName)
     }
+
     func playerStatus() -> String {
         let status = audioPlayerDelegate.togglePlayPause()
         (status == .pause) ? pause() : play()
         return (status == .pause) ? "play.circle" : "pause.circle"
     }
     // MARK: Player control
-    func setupURL(url: String) {
-        guard URL(string: url) != nil else { return }
+    func setupURL(url: String) -> Bool {
+        guard URL(string: url) != nil else { return false }
         audioPlayer.setupURLForRadio(url: url)
+        return true
     }
+
     func play() { audioPlayer.play() }
     func pause() { audioPlayer.pause() }
     func stop() { audioPlayer.stop() }
+
     // MARK: PlayerView visibility
-    func visiblePlayerView() {
+    func showPlayerView() {
         guard !playerViewIsVisible else { return }
         constraintPlayerView = -70
         playerViewIsVisible = true
-        view?.viewPlayerView(constPlayerView: constraintPlayerView)
+        view?.updatePlayerView(constPlayerView: constraintPlayerView)
     }
-    func unvisiblePlayerView() {
+    func hidePlayerView() {
         stop()
+        audioPlayerDelegate.playerStatus = .pause
         cellIndex = nil
         constraintPlayerView = 0
         playerViewIsVisible = false
-        view?.viewPlayerView(constPlayerView: constraintPlayerView)
+        view?.updatePlayerView(constPlayerView: constraintPlayerView)
     }
 }
 
-// MARK: - DataPresenterProtocol
-extension StationsViewPresenter: DataPresenterProtocol {
+// MARK: - PlayerDataPresenterProtocol
+extension StationsViewPresenter: PlayerDataPresenterProtocol {
 
     func dataOnPresenter() {
+        if let current = audioPlayerDelegate.presenterForData as AnyObject?, current === self {
+            return
+        }
         audioPlayerDelegate.setPresenterForData(presenter: self)
     }
+
     func dataOfSong(artistName: String, trackName: String) {
         print("\(artistName) - \(trackName)")
         transferData.artistName = artistName
         transferData.trackName = trackName
     }
+
     func dataOfSongImage(image: UIImage?) {
         guard let image else { return }
         transferData.image = image
     }
-    func dataRequest(trackName: String, artistName: String, image: UIImage) {
-        transferData.trackName = trackName
-        transferData.artistName = artistName
-        transferData.image = image
-    }
-    func succesLoadData() {
+}
+
+// MARK: - StationsDataLoadPresenterProtocol
+extension StationsViewPresenter: StationsDataLoadPresenterProtocol {
+
+    func successLoadData() {
         Task { @MainActor in
-            self.view?.succes()
+            self.view?.success()
+        }
+    }
+
+    func failureLoadData(error: Error) {
+        Task { @MainActor in
+            self.view?.failure(error: error)
         }
     }
 }

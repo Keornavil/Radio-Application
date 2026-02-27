@@ -1,5 +1,3 @@
-
-
 import UIKit
 
 struct TransferData {
@@ -12,6 +10,6 @@ struct TransferData {
         radioName: "",
         artistName: "Имя артиста неизвестно",
         trackName: "Название песни неизвестно",
-        image: UIImage(named: "placeholder") ?? UIImage()
+        image: UIImage()
     )
 }

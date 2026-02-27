@@ -1,5 +1,11 @@
-
 import UIKit
+
+// MARK: - View
+protocol NowPlayingViewProtocol: AnyObject {
+    func setComment(transferDataForRadio: TransferData)
+    func dataOfSong(artistName: String, trackName: String)
+    func dataOfSongImage(image: UIImage)
+}
 
 final class NowPlayingViewController: UIViewController {
     
@@ -32,13 +38,10 @@ final class NowPlayingViewController: UIViewController {
         setupUI()
         setupConstraints()
         presenter.setComment()
-        
     }
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        if self.isBeingDismissed {
-            presenter.routeForDelegate()
-        }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        presenter.activateAsDataReceiver()
     }
 }
 
@@ -85,7 +88,7 @@ private extension NowPlayingViewController {
             stackViewLabel.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor),
             stackViewLabel.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor),
             stackViewLabel.widthAnchor.constraint(equalTo: bottomView.widthAnchor),
-            stackViewLabel.heightAnchor.constraint(equalTo: playOrPauseButton.heightAnchor,constant: 20)
+            stackViewLabel.heightAnchor.constraint(equalTo: playOrPauseButton.heightAnchor, constant: 20)
         ])
     }
 }

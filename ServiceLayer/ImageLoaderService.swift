@@ -1,4 +1,3 @@
-
 import Kingfisher
 import UIKit
 
@@ -8,7 +7,7 @@ protocol ImageLoaderServiceProtocol {
 
 final class ImageLoaderService: ImageLoaderServiceProtocol {
     
-    func loadImage(from url: URL, completion: @escaping (Result<UIImage, any Error>) -> Void) {
+    func loadImage(from url: URL, completion: @escaping (Result<UIImage, Error>) -> Void) {
         KingfisherManager.shared.retrieveImage(with: url) { result in
             switch result {
             case .success(let value):

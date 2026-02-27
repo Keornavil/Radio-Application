@@ -1,13 +1,12 @@
-
 import UIKit
 
 final class StationsViewUIComponents {
     
-    func makeTableView(sourсe: UITableViewDataSource, delegate: UITableViewDelegate) -> UITableView {
+    func makeTableView(source: UITableViewDataSource, delegate: UITableViewDelegate) -> UITableView {
         let tableView = UITableView()
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
-        tableView.dataSource = sourсe
+        tableView.dataSource = source
         tableView.delegate = delegate
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(RadioStationCell.self, forCellReuseIdentifier: "cell")
@@ -43,7 +42,8 @@ final class StationsViewUIComponents {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
-    func makeLabel(text: String,color: UIColor) -> UILabel {
+
+    func makeLabel(text: String, color: UIColor) -> UILabel {
         let label = UILabel()
         label.text = text
         label.textColor = color

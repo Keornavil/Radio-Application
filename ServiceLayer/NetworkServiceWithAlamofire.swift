@@ -1,12 +1,14 @@
-
 import Foundation
 import Alamofire
 
 protocol NetworkServiceProtocol {
-    func getStationsFromNetwork<T: Decodable>(urlString: String, completion: @escaping (Result<T, Error>) -> ())
+    func getStationsFromNetwork<T: Decodable>(
+        urlString: String,
+        completion: @escaping (Result<T, Error>) -> Void
+    )
 }
 
-class NetworkServiceWithAlamofire: NetworkServiceProtocol {
+final class NetworkServiceWithAlamofire: NetworkServiceProtocol {
     
     func getStationsFromNetwork<T: Decodable>(urlString: String, completion: @escaping (Result<T, Error>) -> Void) {
         AF.request(urlString)

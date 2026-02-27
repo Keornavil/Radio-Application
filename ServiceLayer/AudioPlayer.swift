@@ -1,4 +1,3 @@
-
 import Foundation
 import FRadioPlayer
 
@@ -18,20 +17,18 @@ final class AudioPlayer: AudioPlayerProtocol {
             print("Ссылка не соответствует URL формату")
             return
         }
-        self.player.radioURL = radioURL
+        player.radioURL = radioURL
     }
     func play() {
-        self.player.play()
+        player.play()
     }
     func pause() {
-        self.player.pause()
+        player.pause()
     }
     func stop() {
-        self.player.stop()
+        player.stop()
     }
     func setDelegate(delegate: FRadioPlayerDelegate) {
         player.delegate = delegate
     }
 }
-
-        

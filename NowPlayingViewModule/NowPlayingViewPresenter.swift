@@ -1,27 +1,12 @@
-
-
-
-
-
-
-import Foundation
 import UIKit
-
-// MARK: - View
-protocol NowPlayingViewProtocol: AnyObject {
-    func setComment(transferDataForRadio: TransferData)
-    func dataOfSong(artistName: String, trackName: String)
-    func dataOfSongImage(image: UIImage)
-}
 
 // MARK: - Presenter
 protocol NowPlayingViewPresenterProtocol: AnyObject {
-    init(router: RouterProtocol,
-         audioPlayer: AudioPlayerProtocol,
+    init(audioPlayer: AudioPlayerProtocol,
          audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol,
-         transferDataForRadio: TransferData)
+         radioName: String)
     func setComment()
-    func routeForDelegate()
+    func activateAsDataReceiver()
     func play()
     func pause()
     func playerStatus() -> String
@@ -30,30 +15,21 @@ protocol NowPlayingViewPresenterProtocol: AnyObject {
 final class NowPlayingViewPresenter: NowPlayingViewPresenterProtocol {
 
     private weak var view: NowPlayingViewProtocol?
-    private let router: RouterProtocol
     private let audioPlayer: AudioPlayerProtocol
     private let audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol
-    private let transferDataForRadio: TransferData
-    private weak var previousPresenter: DataPresenterProtocol?
-    private var artistNameRadio: String
-    private var trackNameRadio: String
-    private var imageRadio: UIImage
+    private let radioName: String
 
     // MARK: - Init
-    required init(router: RouterProtocol,
-                  audioPlayer: AudioPlayerProtocol,
+    required init(audioPlayer: AudioPlayerProtocol,
                   audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol,
-                  transferDataForRadio: TransferData) {
-        self.router = router
+                  radioName: String) {
         self.audioPlayer = audioPlayer
         self.audioPlayerDelegate = audioPlayerDelegate
-        self.transferDataForRadio = transferDataForRadio
-        self.artistNameRadio = transferDataForRadio.artistName
-        self.trackNameRadio  = transferDataForRadio.trackName
-        self.imageRadio      = transferDataForRadio.image
+        self.radioName = radioName
         dataOnPresenter()
     }
-    // MARK: Binding
+
+    // MARK: - Binding
     func attachView(_ view: NowPlayingViewProtocol) {
         self.view = view
     }
@@ -69,36 +45,35 @@ final class NowPlayingViewPresenter: NowPlayingViewPresenterProtocol {
 
     // MARK: - View setup
     func setComment() {
-        view?.setComment(transferDataForRadio: transferDataForRadio)
+        var dataForView = TransferData.initial
+        dataForView.radioName = radioName
+        let songData = audioPlayerDelegate.currentSongData()
+        dataForView.artistName = songData.artistName
+        dataForView.trackName = songData.trackName
+        if let image = songData.image {
+            dataForView.image = image
+        }
+        view?.setComment(transferDataForRadio: dataForView)
     }
-
-    // MARK: - Restore delegate routing back
-    func routeForDelegate() {
-        guard let previousPresenter else { return }
-        audioPlayerDelegate.setPresenterForData(presenter: previousPresenter)
-        audioPlayerDelegate.dataRequest(
-            artistName: artistNameRadio,
-            trackName: trackNameRadio,
-            image: imageRadio
-        )
+    func activateAsDataReceiver() {
+        dataOnPresenter()
     }
 }
 
-// MARK: - DataPresenterProtocol
-extension NowPlayingViewPresenter: DataPresenterProtocol {
+// MARK: - PlayerDataPresenterProtocol
+extension NowPlayingViewPresenter: PlayerDataPresenterProtocol {
 
     func dataOnPresenter() {
-        previousPresenter = audioPlayerDelegate.presenterForData
+        if let current = audioPlayerDelegate.presenterForData as AnyObject?, current === self {
+            return
+        }
         audioPlayerDelegate.setPresenterForData(presenter: self)
     }
     func dataOfSong(artistName: String, trackName: String) {
-        artistNameRadio = artistName
-        trackNameRadio = trackName
         view?.dataOfSong(artistName: artistName, trackName: trackName)
     }
     func dataOfSongImage(image: UIImage?) {
         guard let image else { return }
-        imageRadio = image
         view?.dataOfSongImage(image: image)
     }
 }

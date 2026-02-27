@@ -1,5 +1,12 @@
-
 import UIKit
+
+// MARK: - View -> Presenter
+protocol StationsViewProtocol: AnyObject {
+    func success()
+    func failure(error: Error)
+    func updatePlayerView(constPlayerView: CGFloat)
+    func showOnlineState(_ isOnline: Bool)
+}
 
 final class StationsViewController: UIViewController {
     
@@ -8,12 +15,14 @@ final class StationsViewController: UIViewController {
     // MARK: - UI
     private let stationViewUIComponents = StationsViewUIComponents()
     private let gradientView = GradientView()
-    private lazy var tableView: UITableView = stationViewUIComponents.makeTableView(sourсe: self, delegate: self)
+    private lazy var tableView: UITableView = stationViewUIComponents.makeTableView(source: self, delegate: self)
     private lazy var playerView = stationViewUIComponents.makePlayerView()
     private let activityIndicator = CustomGradientActivityIndicator()
     private var tableViewBottomConstraint: NSLayoutConstraint?
     private lazy var radioNameLabel = stationViewUIComponents.makeLabel(
-        text: "", color: .white)
+        text: "",
+        color: .white
+    )
     private lazy var imageOfStation = stationViewUIComponents.makeStationImageView()
     private lazy var playOrPauseButton = stationViewUIComponents.makeButton(
         systemName: "pause.circle", action: #selector(playButtonAction),
@@ -46,6 +55,10 @@ final class StationsViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         presenter.checkOnlineStatus()
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        presenter.activateAsDataReceiver()
     }
 }
 
@@ -130,17 +143,17 @@ private extension StationsViewController {
         playOrPauseButton.setImage(UIImage(systemName: imageName, withConfiguration: imageConfig), for: .normal)
     }
     func showAlert() {
-            guard !(presentedViewController is UIAlertController) else { return }
-            let alert = UIAlertController(
-                title: "Нет подключения к интернету",
-                message: "Проверьте подключение и попробуйте снова.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "Повторить", style: .default) { [weak self] _ in
-                self?.presenter.checkOnlineStatus()
-            })
-            present(alert, animated: true)
-        }
+        guard !(presentedViewController is UIAlertController) else { return }
+        let alert = UIAlertController(
+            title: "Нет подключения к интернету",
+            message: "Проверьте подключение и попробуйте снова.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Повторить", style: .default) { [weak self] _ in
+            self?.presenter.checkOnlineStatus()
+        })
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - Actions
@@ -150,7 +163,7 @@ private extension StationsViewController {
         updatePlayPauseIcon()
     }
     @objc func stopButtonAction(_ sender: UIButton) {
-        presenter.unvisiblePlayerView()
+        presenter.hidePlayerView()
     }
     @objc func openNowPlayingViewButtonAction(_ sender: UIButton) {
         presenter.tapNowPlayingViewButton()
@@ -160,7 +173,7 @@ private extension StationsViewController {
 // MARK: - StationsViewProtocol
 extension StationsViewController: StationsViewProtocol {
     
-    func succes() {
+    func success() {
         tableView.reloadData()
         activityIndicator.stopAnimating()
     }
@@ -168,7 +181,7 @@ extension StationsViewController: StationsViewProtocol {
         print(error.localizedDescription)
         activityIndicator.stopAnimating()
     }
-    func viewPlayerView(constPlayerView: CGFloat) {
+    func updatePlayerView(constPlayerView: CGFloat) {
         tableViewBottomConstraint?.constant = constPlayerView
         UIView.animate(withDuration: 0.4) {
             self.view.layoutIfNeeded()
@@ -189,10 +202,10 @@ extension StationsViewController: StationsViewProtocol {
 extension StationsViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return presenter.radioStationsCount()
+        presenter.radioStationsCount()
     }
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
+        90
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? RadioStationCell else {
@@ -205,7 +218,7 @@ extension StationsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         presenter.tapOnTheCellOfRadio(cellIndex: indexPath.row)
-        presenter.visiblePlayerView()
+        presenter.showPlayerView()
         updatePlayerBar(with: indexPath.row)
     }
 }
