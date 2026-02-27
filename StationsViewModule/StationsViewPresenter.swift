@@ -109,7 +109,7 @@ final class StationsViewPresenter: StationsViewPresenterProtocol {
         guard radioStationData.radioStations.indices.contains(cellIndex),
               radioStationData.radioStationsImages.indices.contains(cellIndex) else { return }
         guard self.cellIndex != cellIndex else {
-            router.showNowPlayingViewController(radioName: transferData.radioName)
+            router.showNowPlayingViewController()
             return
         }
         let station = radioStationData.radioStations[cellIndex]
@@ -117,7 +117,6 @@ final class StationsViewPresenter: StationsViewPresenterProtocol {
         guard setupURL(url: station.link) else { return }
         play()
         self.cellIndex = cellIndex
-        transferData.radioName = station.title
         audioPlayerDelegate.setCurrentStationName(station.title)
         transferData.artistName = "Имя артиста неизвестно"
         transferData.trackName = "Название песни неизвестно"
@@ -130,7 +129,7 @@ final class StationsViewPresenter: StationsViewPresenterProtocol {
         audioPlayerDelegate.playerStatus = .play
     }
     func tapNowPlayingViewButton() {
-        router.showNowPlayingViewController(radioName: transferData.radioName)
+        router.showNowPlayingViewController()
     }
 
     func playerStatus() -> String {

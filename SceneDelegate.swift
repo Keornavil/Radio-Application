@@ -15,7 +15,13 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let imageLoader = ImageLoaderService()
         let audioPlayer = AudioPlayer()
-        let audioPlayerDelegate = AudioPlayerDelegateHandler(imageLoader: imageLoader)
+        let stateStore = AudioPlayerStateStore()
+        let nowPlayingService = NowPlayingInfoService()
+        let audioPlayerDelegate = AudioPlayerDelegateHandler(
+            imageLoader: imageLoader,
+            nowPlayingService: nowPlayingService,
+            stateStore: stateStore
+        )
         let navigationController = UINavigationController()
         let assemblyBuilder = AssemblyModuleBuilder()
         let router = Router(

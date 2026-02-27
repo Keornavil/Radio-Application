@@ -8,7 +8,6 @@ protocol AssemblyBuilderProtocol {
         imageLoader: ImageLoaderServiceProtocol
     ) -> UIViewController
     func createNowPlayerViewModule(
-        radioName: String,
         audioPlayer: AudioPlayerProtocol,
         audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol
     ) -> UIViewController
@@ -38,14 +37,12 @@ final class AssemblyModuleBuilder: AssemblyBuilderProtocol {
     }
     
     func createNowPlayerViewModule(
-        radioName: String,
         audioPlayer: AudioPlayerProtocol,
         audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol
     ) -> UIViewController {
         let presenter = NowPlayingViewPresenter(
             audioPlayer: audioPlayer,
-            audioPlayerDelegate: audioPlayerDelegate,
-            radioName: radioName
+            audioPlayerDelegate: audioPlayerDelegate
         )
         let view = NowPlayingViewController(presenter: presenter)
         presenter.attachView(view)

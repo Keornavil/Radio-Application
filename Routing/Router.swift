@@ -7,7 +7,7 @@ protocol RouterMain {
 
 protocol RouterProtocol: RouterMain {
     func initialStationViewController()
-    func showNowPlayingViewController(radioName: String)
+    func showNowPlayingViewController()
 }
 
 final class Router: RouterProtocol {
@@ -42,9 +42,8 @@ final class Router: RouterProtocol {
         navigationController.viewControllers = [stationsViewController]
     }
     
-    func showNowPlayingViewController(radioName: String) {
+    func showNowPlayingViewController() {
         let nowPlayingViewController = assemblyBuilder.createNowPlayerViewModule(
-            radioName: radioName,
             audioPlayer: audioPlayer,
             audioPlayerDelegate: audioPlayerDelegate
         )

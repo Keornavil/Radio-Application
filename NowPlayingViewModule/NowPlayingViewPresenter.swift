@@ -3,8 +3,7 @@ import UIKit
 // MARK: - Presenter
 protocol NowPlayingViewPresenterProtocol: AnyObject {
     init(audioPlayer: AudioPlayerProtocol,
-         audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol,
-         radioName: String)
+         audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol)
     func setComment()
     func activateAsDataReceiver()
     func play()
@@ -17,15 +16,12 @@ final class NowPlayingViewPresenter: NowPlayingViewPresenterProtocol {
     private weak var view: NowPlayingViewProtocol?
     private let audioPlayer: AudioPlayerProtocol
     private let audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol
-    private let radioName: String
 
     // MARK: - Init
     required init(audioPlayer: AudioPlayerProtocol,
-                  audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol,
-                  radioName: String) {
+                  audioPlayerDelegate: AudioPlayerDelegateHandlerProtocol) {
         self.audioPlayer = audioPlayer
         self.audioPlayerDelegate = audioPlayerDelegate
-        self.radioName = radioName
         dataOnPresenter()
     }
 
@@ -46,8 +42,8 @@ final class NowPlayingViewPresenter: NowPlayingViewPresenterProtocol {
     // MARK: - View setup
     func setComment() {
         var dataForView = TransferData.initial
-        dataForView.radioName = radioName
         let songData = audioPlayerDelegate.currentSongData()
+        dataForView.radioName = songData.radioName
         dataForView.artistName = songData.artistName
         dataForView.trackName = songData.trackName
         if let image = songData.image {
